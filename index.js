@@ -2,24 +2,28 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
-app.set('trust proxy', true); // Enable if behind a proxy
 
-// Controller to get the IP address
+app.use((req, res, next) => {
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress;
+  console.log('Client IP:', ip);
+  next();
+});
+
+
 app.get('/api/get-ip', (req, res) => {
-  let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress;
 
-  // Handle IPv6 and IPv4-mapped IPv6 addresses
+  // Format IP Address
+  let formattedIP = ip;
   if (ip.includes('::ffff:')) {
-    ip = ip.split('::ffff:')[1];
+    formattedIP = ip.split('::ffff:')[1];
+  } else if (ip === '::1' || ip === '127.0.0.1') {
+    formattedIP = 'Localhost';
   }
 
-  if (ip.includes(',')) {
-    ip = ip.split(',')[0];
-  }
-
-  res.json({ ip });
+  res.json({ ip: formattedIP });
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server running on http://localhost:${port}`);
 });
