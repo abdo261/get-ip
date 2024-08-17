@@ -2,12 +2,21 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
+app.set('trust proxy', true); // Enable if behind a proxy
+
 // Controller to get the IP address
 app.get('/api/get-ip', (req, res) => {
-  // Get the IP address from the request
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
+  let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null;
 
- 
+  // Handle IPv6 and IPv4-mapped IPv6 addresses
+  if (ip.includes('::ffff:')) {
+    ip = ip.split('::ffff:')[1];
+  }
+
+  if (ip.includes(',')) {
+    ip = ip.split(',')[0];
+  }
+
   res.json({ ip });
 });
 
