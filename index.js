@@ -1,19 +1,21 @@
 const express = require('express');
 const app = express();
 const port = 3000;
-
+const core = require('cors')
 
 app.use((req, res, next) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress;
   console.log('Client IP:', ip);
   next();
 });
-
+app.use(core({
+    origin:['http://localhost:5173',"http://localhost:3000"]
+}))
 
 app.get('/api/get-ip', (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress;
 
-  // Format IP Address
+  
   let formattedIP = ip;
   if (ip.includes('::ffff:')) {
     formattedIP = ip.split('::ffff:')[1];
